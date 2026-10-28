@@ -1,0 +1,8 @@
+.git
+data
+logs
+volumes
+notebooks
+**/__pycache__
+*.npy
+*.parquet

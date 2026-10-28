@@ -1,0 +1,22 @@
+# Pinned for compatibility - see VERSIONS.md for the reason behind each pin.
+# PyTorch (CPU build) is installed separately in the Dockerfile.
+
+pyspark==4.0.4            # must equal the spark-sql-kafka jar version; Iceberg 1.11 does not support Spark 4.2
+pandas>=2.2,<3            # PySpark 4.0 predates pandas 3
+numpy>=2.0,<2.4           # stay within what PySpark 4.0 / pandas 2.x were tested with
+pyarrow>=15,<21           # PySpark 4.0 Arrow conversions
+
+pymilvus==3.0.2           # client matching Milvus server 3.0.x
+faiss-cpu==1.15.1         # baseline + exact ground truth
+sentence-transformers==6.2.0
+
+confluent-kafka==2.16.1   # producer for permission-change events
+boto3>=1.35               # create the MinIO bucket for the lakehouse
+
+fastapi>=0.115
+uvicorn>=0.30
+streamlit>=1.40
+
+matplotlib>=3.9
+jupyterlab>=4.2
+pytest>=8.3
