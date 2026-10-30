@@ -1,0 +1,33 @@
+{
+  "board_title": "A Generalized Framework for Kullback-Leibler Markov Aggregation",
+  "scenes": [
+    {
+      "t": 3.51,
+      "caption": "Signed in as an intern: every result is labelled public"
+    },
+    {
+      "t": 13.38,
+      "caption": "CS manager, same query: cs-internal and cs-confidential papers now appear"
+    },
+    {
+      "t": 23.2,
+      "caption": "Intern searches the exact title of a board-only paper..."
+    },
+    {
+      "t": 28.65,
+      "caption": "...the board-only paper is not returned (blocked inside Milvus, second check: 0)"
+    },
+    {
+      "t": 39.58,
+      "caption": "Board member, same title: the paper is result #1, label board-restricted"
+    },
+    {
+      "t": 50.24,
+      "caption": "Same search with the partition method: same answer"
+    },
+    {
+      "t": 55.27,
+      "caption": "end"
+    }
+  ]
+}

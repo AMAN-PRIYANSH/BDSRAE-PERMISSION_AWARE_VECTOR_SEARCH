@@ -159,6 +159,8 @@ services:
       - ./tests:/app/tests
       - ./notebooks:/app/notebooks
       - ./logs:/app/logs
+      - ./data:/app/data
+      - ./results:/app/results
       - hf_models:/models
     depends_on:
       standalone:
@@ -168,6 +170,47 @@ services:
       postgres:
         condition: service_started
     mem_limit: 5g
+
+  # Demo services: start with  docker compose --profile demo up -d
+  api:
+    container_name: pavs-api
+    image: pavs-app:dev
+    profiles: ["demo"]
+    command: ["uvicorn", "src.pavs.api:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      PAVS_MILVUS_URI: http://standalone:19530
+      HF_HOME: /models
+    volumes:
+      - ./src:/app/src
+      - ./logs:/app/logs
+      - hf_models:/models
+    ports:
+      - "8000:8000"   # http://localhost:8000/docs
+    depends_on:
+      standalone:
+        condition: service_started
+    mem_limit: 2g
+
+  ui:
+    container_name: pavs-ui
+    image: pavs-app:dev
+    profiles: ["demo"]
+    command: ["streamlit", "run", "src/pavs/ui.py", "--server.port", "8501", "--server.address", "0.0.0.0",
+              "--server.headless", "true", "--browser.gatherUsageStats", "false"]
+    environment:
+      PAVS_MILVUS_URI: http://standalone:19530
+      HF_HOME: /models
+      PYTHONPATH: /app
+    volumes:
+      - ./src:/app/src
+      - ./logs:/app/logs
+      - hf_models:/models
+    ports:
+      - "8501:8501"   # http://localhost:8501
+    depends_on:
+      standalone:
+        condition: service_started
+    mem_limit: 2g
 
 volumes:
   etcd_data:

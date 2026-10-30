@@ -1,0 +1,8 @@
+# Keep Linux files with LF endings so they work inside Docker containers,
+# even when the repo is cloned on Windows. Windows scripts keep CRLF.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.png binary
+*.jpg binary
+*.npy binary
+*.parquet binary

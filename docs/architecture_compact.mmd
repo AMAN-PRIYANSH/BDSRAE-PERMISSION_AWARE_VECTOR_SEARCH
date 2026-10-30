@@ -1,0 +1,25 @@
+flowchart LR
+    subgraph K["1 · Kaggle (free T4 GPU)"]
+        direction TB
+        A[arXiv metadata<br/>CC0, 3.2M papers] --> B[Sample 1M + 2k queries<br/>dedupe, drop author names]
+        B --> C[all-MiniLM-L6-v2<br/>384-dim embeddings]
+    end
+    subgraph L["2 · Lakehouse (Spark + Iceberg)"]
+        direction TB
+        D[Spark job: ingest<br/>labels by policy] --> E[(Iceberg tables<br/>documents, doc_embeddings,<br/>role_grants, users, acl_events)]
+        E --- F[(MinIO object storage<br/>+ Postgres catalog)]
+        E --> H[Spark job: index]
+    end
+    subgraph S["3 · Permission changes"]
+        direction TB
+        P[Kafka topic<br/>acl-relabel] --> Q[Spark Structured<br/>Streaming]
+    end
+    subgraph V["4 · Serving"]
+        direction TB
+        I[(Milvus<br/>docs_filter: HNSW + label filter<br/>docs_part: partition per label)] --> M[Search core<br/>user → role → allowed labels<br/>fail-closed, second check, audit log]
+        M --> N[FastAPI · Streamlit UI<br/>leakage tests · benchmark vs FAISS]
+    end
+    C -->|parquet + npy| D
+    H --> I
+    Q -->|fast path 0.2 s:<br/>move label| I
+    Q -->|slow path 1 s:<br/>MERGE + audit| E

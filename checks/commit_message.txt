@@ -1,0 +1,23 @@
+Full pipeline, leakage suite, benchmarks at 100k and 1M, report
+
+Pipeline
+- Kaggle T4 notebook embeds 1M arXiv abstracts + 2k held-out queries (all-MiniLM-L6-v2)
+- Spark ingest to Iceberg on MinIO (JDBC catalog on Postgres); labels from one policy, checked Spark vs Python
+- Spark index job stages the join once, then streams batches into two Milvus collections
+  (filter collection with HNSW + INVERTED label index, partition-per-label collection)
+- Spark step runs in a child process so its JVM is gone before the Milvus load (1M ran out of memory before)
+- ACL stream (Kafka -> Spark Structured Streaming): default, tuned (4 shuffle partitions) and
+  split mode (fast path Kafka -> Milvus every 0.2 s, slow path Kafka -> Iceberg MERGE + audit)
+
+Evidence
+- Leakage suite: 38 tests, 0 leaks (100k and 1M index); mutation check proves the suite catches a disabled filter
+- Recall/latency vs selectivity for Milvus filter, Milvus partition and three FAISS baselines (100k and 1M)
+- Revocation leak window: about 5 s (default) -> 3 s (tuned) -> 1 s (split), with a breakdown per stage
+- Results notebook, technical report (md + pdf), model card, data card with measured label shares
+- 1M benchmark in two runs (Milvus, then FAISS) so the laptop does not swap; warm-up before measuring
+- Silent 3-minute demo video recorded from the live UI (results/demo), narration script, one-click scripts 20-40 and 99
+
+Fixes
+- Iceberg S3FileIO deletes on MinIO (legacy MD5 plugin)
+- Read-only Arrow buffers in the index job
+- Bench builds FAISS indexes from the float16 file in chunks (no extra 1.5 GB copy at 1M)

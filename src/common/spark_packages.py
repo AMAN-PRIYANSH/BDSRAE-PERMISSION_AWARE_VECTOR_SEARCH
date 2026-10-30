@@ -20,7 +20,7 @@ PACKAGES = [
 ]
 
 
-def get_spark(app_name="pavs", master="local[2]", driver_memory="2g"):
+def get_spark(app_name="pavs", master="local[2]", driver_memory="2g", extra=None):
     from pyspark.sql import SparkSession
 
     s3 = os.environ.get("PAVS_S3_ENDPOINT", "http://minio:9000")
@@ -45,9 +45,14 @@ def get_spark(app_name="pavs", master="local[2]", driver_memory="2g"):
         .config("spark.sql.catalog.lake.s3.access-key-id", os.environ.get("AWS_ACCESS_KEY_ID", "minioadmin"))
         .config("spark.sql.catalog.lake.s3.secret-access-key", os.environ.get("AWS_SECRET_ACCESS_KEY", "minioadmin"))
         .config("spark.sql.catalog.lake.client.region", os.environ.get("AWS_REGION", "us-east-1"))
+        # AWS SDK >= 2.30 sends new checksums that our (older) MinIO rejects on batch delete
+        # ("Missing required header: Content-Md5"). Iceberg's switch for older S3-compatible stores:
+        .config("spark.sql.catalog.lake.client.legacy-md5-plugin-enabled", "true")
         .config("spark.sql.defaultCatalog", "lake")
         .config("spark.ui.enabled", "false")
     )
+    for k, v in (extra or {}).items():
+        b = b.config(k, v)
     spark = b.getOrCreate()
     spark.sparkContext.setLogLevel("WARN")
     return spark

@@ -1,0 +1,22 @@
+flowchart LR
+    subgraph Kaggle["Kaggle (free T4 GPU)"]
+        A[arXiv metadata<br/>CC0, 3.2M papers] --> B[Sample 1M + 2k queries<br/>drop duplicates and author names]
+        B --> C[all-MiniLM-L6-v2<br/>384-dim embeddings]
+    end
+    C -->|parquet + npy| D
+
+    subgraph Laptop["Docker Compose on one laptop"]
+        D[Spark job: ingest] -->|labels by policy| E[(Iceberg tables<br/>documents, doc_embeddings,<br/>role_grants, users, acl_events)]
+        E --- F[(MinIO<br/>object storage)]
+        E --- G[(Postgres<br/>Iceberg catalog)]
+        E --> H[Spark job: index]
+        H --> I[(Milvus<br/>docs_filter: HNSW + label filter<br/>docs_part: partition per label)]
+        K[Kafka topic<br/>acl-relabel] --> L[Spark Structured Streaming<br/>acl_stream]
+        L -->|fast path, every 0.2 s:<br/>move label| I
+        L -->|slow path, every 1 s:<br/>MERGE + audit| E
+        I --> M[Search core<br/>role -> allowed labels<br/>filter inside Milvus<br/>+ second check]
+        M --> N[FastAPI :8000]
+        M --> O[Streamlit UI :8501]
+        M --> P[Leakage tests<br/>pytest]
+        M --> Q[Benchmark<br/>vs FAISS baselines]
+    end

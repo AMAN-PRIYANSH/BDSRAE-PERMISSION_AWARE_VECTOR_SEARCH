@@ -5,12 +5,16 @@ __pycache__/
 venv/
 .ipynb_checkpoints/
 
-# Data and generated artifacts (too large for git)
-data/
+# Data and generated artifacts (too large for git). Results (CSV + PNG) ARE committed.
+data/*
+!data/.gitkeep
 *.npy
-*.parquet
 *.db
 volumes/
+
+# Raw run logs are local only (large, and may contain personal settings)
+logs/*
+!logs/.gitkeep
 
 # Local secrets
 .env

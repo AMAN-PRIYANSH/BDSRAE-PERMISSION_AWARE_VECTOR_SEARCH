@@ -7,6 +7,7 @@ Checks the lakehouse features the project relies on:
 
 Run:  python -m src.smoke.test_lakehouse
 """
+import os
 import time
 
 from src.common.spark_packages import ensure_bucket, get_spark
@@ -58,6 +59,11 @@ def main():
     ok(f"time travel works: doc 1 was '{before}' in snapshot {first_snap} ({snaps} snapshots kept)")
 
     spark.sql("DROP TABLE lake.smoke.docs PURGE")
+    import boto3
+    s3 = boto3.client("s3", endpoint_url=os.environ.get("PAVS_S3_ENDPOINT", "http://minio:9000"))
+    left = s3.list_objects_v2(Bucket="lakehouse", Prefix="warehouse/smoke/docs/").get("KeyCount", 0)
+    assert left == 0, f"{left} files still in MinIO after DROP TABLE PURGE (deletes failing)"
+    ok("DROP TABLE PURGE really deleted the files from MinIO")
     spark.stop()
     print("LAKEHOUSE SMOKE TEST: ALL PASSED")
 
