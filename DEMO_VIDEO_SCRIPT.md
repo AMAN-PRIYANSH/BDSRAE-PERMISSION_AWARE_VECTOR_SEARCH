@@ -1,68 +1,48 @@
-# 3-minute demo video: narration script
+# Demo videos: what is in them and what to say
 
-The video is already made and silent: `results/demo/demo_video.mp4` (3:00, 1920x1080, captions burned in).
-Record the narration and lay it over the video (for example in Clipchamp, which comes with Windows:
-drag in the video, record or import your voice, export at 1080p).
+All videos are silent with captions burned in. Speak live while it plays, and pause where marked.
 
-Times below match the video exactly. One person narrates. Speak calmly; each block has some spare seconds.
+| File (in `results/demo/`) | Length | Use it when |
+|---|---|---|
+| `demo_video_v2.mp4` | 2:58 | Only one video is played: pipeline animation + live system + results |
+| `part1_pipeline.mp4` | 1:18 | Showing slides too: play it on the architecture/example slide |
+| `part2_live_demo.mp4` | 0:55 | Showing slides too: play it after the example slide |
+| `demo_video.mp4` | 3:00 | Old version (kept for reference) |
 
-## 0:00 - 0:20  Title
-Screen: title card.
+## Part 1: the pipeline animation (0:00 - 1:18 in demo_video_v2)
 
-Say: "Company chatbots search a vector database for the most similar documents. If that search ignores who
-is asking, an intern can get a board-only document. We built semantic search over one million arXiv papers
-that never returns a paper the user is not allowed to see, and we measured what that safety costs."
+| Time | On screen | Say (or pause here) |
+|---|---|---|
+| 0:00 | Title card | "Let's follow one search through our system. There are three paths." |
+| 0:05 | Path A lights up (grey) | "A, loading, done once: Kaggle makes the embeddings, Spark adds the access labels, Iceberg stores everything, Spark loads Milvus." |
+| 0:17 | Rahul types a question | **Pause.** "B is what happens on every search. Rahul is a CS engineer." |
+| 0:21 - 0:30 | API, then allowed labels | "The API checks who he is. His role may read only public and cs-internal." |
+| 0:30 | Embedding | "His question becomes 384 numbers." |
+| 0:34 | Milvus shelves grey out | **Pause.** "Milvus searches only the allowed shelves. A board paper is never even a candidate. The filter comes from his role, not from his words." |
+| 0:41 - 0:53 | Second check, audit, results | "Every result is checked again, the search is logged, and he gets only allowed papers. Spark, Iceberg and FAISS are not used here." |
+| 0:53 | Path C (orange) | **Pause.** "C, revocation: an admin takes access away. The event goes through Kafka to Spark Streaming." |
+| 1:00 | Fast path to Milvus | "Milvus is updated first, every 0.2 seconds, so the paper disappears in about one second." |
+| 1:04 | Slow dashed path to Iceberg | "The lakehouse and audit history catch up a few seconds later, off the security path." |
 
-## 0:20 - 0:43  Pipeline
-Screen: architecture diagram.
+## Part 2: the live system (1:18 - 2:13)
 
-Say: "Embeddings are made on a free Kaggle GPU. Spark loads the papers into Apache Iceberg tables on MinIO,
-gives every paper an access label from one policy file, and indexes them into Milvus. The permission filter
-runs inside Milvus, before any result exists. Permission changes stream through Kafka and Spark Structured
-Streaming, with a fast path straight to Milvus."
-
-## 0:43 - 1:35  Live demo (real system, 1 million papers)
 | Time | On screen | Say |
 |---|---|---|
-| 0:43 | Search page loads | "This is our search page, running on the full one-million-paper index." |
-| 0:46 | Intern's results, all `public` | "Signed in as an intern. Every result is public." |
-| 0:56 | CS manager, same query | "As the CS manager, the same question now also returns cs-internal and cs-confidential papers." |
-| 1:02 | Intern types a long title | "Now the intern types the exact title of a paper that only the board may read." |
-| 1:08 | Results without that paper | "It is not there. Milvus removed it inside the search, and our second safety check had nothing to block." |
-| 1:19 | Board member: the paper is #1, red label | "The board member searches the same title, and the paper is the first result." |
-| 1:29 | Partition method selected | "Our second method, one partition per label, gives the same answer." |
+| 1:21 | Intern's results, all public | "This is the real search page on one million papers. The intern sees only public papers." |
+| 1:34 | CS manager | "The CS manager also gets cs-internal and cs-confidential papers." |
+| 1:40 | Intern types a long title | "Now the intern types the exact title of a board-only paper." |
+| 1:46 | It is not in the list | **Pause.** "It is not there. Milvus removed it inside the search." |
+| 1:57 | Board member: result #1 | "The board member searches the same title and gets it first." |
+| 2:07 | Partition method | "Our second method gives the same answer." |
 
-If asked about the "ms" number on the page: it includes turning the question into a vector on the CPU;
-the search itself takes a few milliseconds (see the benchmark).
+If asked about the "ms" number on the page: it includes turning the question into numbers on the CPU;
+the search itself takes a few milliseconds.
 
-## 1:35 - 1:55  Leakage tests
-Screen: "38 tests, 0 leaks".
+## Results (2:13 - 2:58)
 
-Say: "Our leakage suite searches as all 10 roles with 200 queries each, uses the exact vectors of restricted
-papers as queries, tries fake users and filter-injection text. All 38 tests pass, on one hundred thousand
-and on one million papers."
-
-## 1:55 - 2:15  Mutation check
-Screen: red FAILED lines.
-
-Say: "To prove the tests can catch a leak, we switched the filter off on purpose. Sixteen tests failed
-immediately, exactly the ones that depend on that filter. The API test still passed, because our second
-check removed the forbidden results: defence in depth."
-
-## 2:15 - 2:35  Recall results
-Screen: recall vs selectivity plot.
-
-Say: "As users are allowed to see less, the usual approach, search first and then delete what they may not
-see, loses almost everything: recall is about one percent when a user may see one percent of the papers.
-Filtering inside Milvus keeps recall near one at every level, in about 5 to 20 milliseconds."
-
-## 2:35 - 2:50  Revocation
-Screen: revocation boxplot.
-
-Say: "When access is taken away, our first pipeline left the paper visible for about 5 seconds. The cause
-was the Spark micro-batch, not Milvus. Splitting the stream into a fast and a slow path brought it down to
-about 1 second."
-
-## 2:50 - 3:00  Close
-Say: "Everything is free and open source, runs with one Docker Compose file, and the code, tests, report,
-data card and model card are in our repository. Thank you."
+| Time | On screen | Say |
+|---|---|---|
+| 2:13 | Recall chart | "When a user may see 1%, search-then-filter returns about 1% of the right papers. Milvus stays near 100%." |
+| 2:28 | Leakage tests | "38 tests, zero leaks, at 100 thousand and at one million papers. With the filter broken on purpose, 16 tests failed, so the tests really catch leaks." |
+| 2:43 | Revocation chart | "Revocation went from 5 seconds to 1 second once we split the stream." |
+| 2:53 | End card | "Thank you." |

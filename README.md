@@ -96,6 +96,8 @@ Ground truth for recall is exact search over only the documents the user may see
 9. `checks\40_finish_all.bat` (1M leakage tests, mutation check, results notebook, demo recording)
 10. `checks\13_start_demo.bat` opens the demo at http://localhost:8501 (API docs at http://localhost:8000/docs)
 11. `checks\99_shutdown_everything.bat` stops all containers and Docker's VM (data stays saved)
+12. `checks\32_check_demo.bat` (while the demo runs) checks the UI and API and prints example searches per role
+13. `checks\92_push_to_github.bat` pushes your commits to GitHub (the remote is set by `91_connect_github.bat`)
 
 On Linux/macOS run the same `docker compose exec app python -m ...` commands that the `.bat` files contain.
 

@@ -1,0 +1,208 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+html,body{margin:0;padding:0;background:#fff;width:1920px;height:1080px;overflow:hidden;font-family:'DejaVu Sans',Arial,sans-serif}
+svg text{font-family:'DejaVu Sans',Arial,sans-serif}
+</style></head>
+<body>
+<svg id="s" xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<defs>
+  <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#9aa1ab"/></marker>
+</defs>
+<rect width="1920" height="1080" fill="#ffffff"/>
+<!-- row tags -->
+<g font-size="22" font-weight="700">
+  <circle cx="58" cy="60" r="26" fill="#475569"/><text x="58" y="68" text-anchor="middle" fill="#fff">A</text>
+  <circle cx="58" cy="380" r="26" fill="#2563eb"/><text x="58" y="388" text-anchor="middle" fill="#fff">B</text>
+  <circle cx="58" cy="985" r="0" fill="#ea580c"/><text x="58" y="993" opacity="0" text-anchor="middle" fill="#fff">C</text>
+</g>
+<g font-size="18" fill="#475569"><text x="96" y="66">Loading (once)</text></g>
+<g font-size="18" fill="#2563eb"><text x="96" y="388">A search (every question)</text></g>
+<g font-size="18" fill="#ea580c"><text x="30" y="996" id="ctag" font-weight="700">C · Revocation (access taken away)</text></g>
+
+<!-- edges (grey); active copies are drawn by JS -->
+<g id="edges" fill="none" stroke="#c4c9d0" stroke-width="3">
+  <path id="A1" d="M370 150 H440" marker-end="url(#ar)"/>
+  <path id="A2" d="M680 150 H750" marker-end="url(#ar)"/>
+  <path id="A3" d="M990 150 H1060" marker-end="url(#ar)"/>
+  <path id="A4" d="M1180 202 V330 H1040 V440" marker-end="url(#ar)"/>
+  <path id="B1" d="M240 540 H290" marker-end="url(#ar)"/>
+  <path id="B2" d="M510 540 H537" marker-end="url(#ar)"/>
+  <path id="B3" d="M787 540 H820" marker-end="url(#ar)"/>
+  <path id="B4" d="M1100 540 H1150" marker-end="url(#ar)"/>
+  <path id="B5" d="M1260 592 V695" marker-end="url(#ar)"/>
+  <path id="B6" d="M1370 540 H1410" marker-end="url(#ar)"/>
+  <path id="C1" d="M370 900 H440" marker-end="url(#ar)"/>
+  <path id="C2" d="M680 900 H750" marker-end="url(#ar)"/>
+  <path id="C3" d="M930 848 V640" marker-end="url(#ar)"/>
+  <path id="C4" d="M990 900 H1780 V80 H870 V98" stroke-dasharray="10 8" marker-end="url(#ar)"/>
+</g>
+<g font-size="18" fill="#9aa1ab">
+  <text id="t_fast" x="918" y="760" text-anchor="end">fast path, every 0.2 s</text>
+  <text id="t_slow" x="1400" y="884">slow path, every 1 s</text>
+</g>
+
+<g id="boxes"></g>
+
+<!-- allowed-label chips under the API box -->
+<g id="chips" opacity="0"></g>
+<!-- embedding numbers -->
+<g id="vec" opacity="0" font-size="20" fill="#2563eb"><text x="662" y="628" text-anchor="middle">[0.12, -0.07, 0.31, ...]</text><text x="662" y="654" text-anchor="middle">384 numbers</text></g>
+<!-- search bubble -->
+<g id="bubble" opacity="0">
+  <rect x="40" y="445" width="300" height="44" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="190" y="474" text-anchor="middle" font-size="21" fill="#1e3a8a">"graph neural networks"</text>
+</g>
+<!-- Milvus shelves -->
+<g id="shelves"></g>
+<!-- results list -->
+<g id="results" opacity="0" font-size="20">
+  <text x="1440" y="540" fill="#111">#1  public</text>
+  <text x="1440" y="568" fill="#111">#2  public</text>
+  <text x="1440" y="596" fill="#1d4ed8">#3  cs-internal</text>
+</g>
+<text id="blocked" x="1276" y="650" font-size="19" fill="#16a34a" opacity="0">blocked: 0</text>
+
+<!-- moving dot -->
+<circle id="dot" r="13" fill="#2563eb" opacity="0"/>
+<circle id="dot2" r="13" fill="#ea580c" opacity="0"/>
+
+<!-- caption bar -->
+<rect x="0" y="1012" width="1920" height="68" fill="#111827"/>
+<text id="cap" x="960" y="1057" text-anchor="middle" font-size="31" fill="#ffffff"></text>
+
+<!-- intro / outro card -->
+<g id="card" opacity="0">
+  <rect width="1920" height="1080" fill="#ffffff"/>
+  <text x="960" y="440" text-anchor="middle" font-size="64" font-weight="700" fill="#111">Follow one search through our system</text>
+  <text x="960" y="530" text-anchor="middle" font-size="34" fill="#475569">A · loading (once)    B · a search (every question)    C · revocation</text>
+  <text x="960" y="600" text-anchor="middle" font-size="28" fill="#6b7280">Example user: Rahul, a CS engineer, allowed to read public and cs-internal papers</text>
+</g>
+</svg>
+<script>
+const NS = "http://www.w3.org/2000/svg";
+const B = {
+ kaggle:[250,150,240,104,"Kaggle GPU","papers → embeddings"],
+ ingest:[560,150,240,104,"Spark: ingest","adds access labels"],
+ iceberg:[870,150,240,104,"Iceberg tables","MinIO + Postgres"],
+ index:[1180,150,240,104,"Spark: index","loads Milvus"],
+ rahul:[140,540,200,104,"Rahul","CS engineer"],
+ api:[400,540,220,104,"API","who are you?"],
+ embed:[662,540,250,104,"Embedding model","question → numbers"],
+ check:[1260,540,220,104,"Second check","labels checked again"],
+ results:[1560,540,300,150,"Rahul's results",""],
+ audit:[1260,740,220,90,"Audit log","who searched what"],
+ admin:[250,900,240,104,"Admin","revokes access"],
+ kafka:[560,900,240,104,"Kafka","event queue"],
+ stream:[870,900,240,104,"Spark Streaming","applies the change"],
+};
+const color = {A:"#475569", B:"#2563eb", C:"#ea580c"};
+const boxEls = {};
+const g = document.getElementById("boxes");
+for (const [k,[cx,cy,w,h,name,sub]] of Object.entries(B)) {
+  const r = document.createElementNS(NS,"rect");
+  r.setAttribute("x",cx-w/2); r.setAttribute("y",cy-h/2); r.setAttribute("width",w); r.setAttribute("height",h);
+  r.setAttribute("rx",12); r.setAttribute("fill","#fff"); r.setAttribute("stroke","#c4c9d0"); r.setAttribute("stroke-width",2.5);
+  g.appendChild(r);
+  const t = document.createElementNS(NS,"text");
+  t.setAttribute("x",cx); t.setAttribute("y", sub ? cy-6 : (k==="results"? cy-44 : cy+8)); t.setAttribute("text-anchor","middle");
+  t.setAttribute("font-size",23); t.setAttribute("font-weight",700); t.setAttribute("fill","#111"); t.textContent=name; g.appendChild(t);
+  if (sub) { const s = document.createElementNS(NS,"text"); s.setAttribute("x",cx); s.setAttribute("y",cy+26); s.setAttribute("text-anchor","middle");
+    s.setAttribute("font-size",19); s.setAttribute("fill","#4b5563"); s.textContent=sub; g.appendChild(s); }
+  boxEls[k]=r;
+}
+// Milvus box with shelves
+const mv = document.createElementNS(NS,"rect");
+mv.setAttribute("x",820); mv.setAttribute("y",440); mv.setAttribute("width",280); mv.setAttribute("height",200); mv.setAttribute("rx",12);
+mv.setAttribute("fill","#fff"); mv.setAttribute("stroke","#c4c9d0"); mv.setAttribute("stroke-width",2.5); g.appendChild(mv); boxEls.milvus = mv;
+const mt = document.createElementNS(NS,"text"); mt.setAttribute("x",960); mt.setAttribute("y",472); mt.setAttribute("text-anchor","middle");
+mt.setAttribute("font-size",25); mt.setAttribute("font-weight",700); mt.setAttribute("fill","#111"); mt.textContent="Milvus"; g.appendChild(mt);
+const shelves = [["public","#ffffff",true],["cs-internal","#dbeafe",true],["cs-confidential","#ffe5c2",false],["physics-internal","#dbeafe",false],["hr-restricted","#f8d7da",false],["board-restricted","#f8d7da",false]];
+const sg = document.getElementById("shelves"); const shelfRows = [];
+shelves.forEach(([name,fill,ok],i)=>{
+  const y = 488 + i*24; const row = document.createElementNS(NS,"g");
+  const tx = document.createElementNS(NS,"text"); tx.setAttribute("x",834); tx.setAttribute("y",y+14); tx.setAttribute("font-size",15); tx.setAttribute("fill","#374151"); tx.textContent=name; row.appendChild(tx);
+  for (let j=0;j<6;j++){ const b=document.createElementNS(NS,"rect"); b.setAttribute("x",990+j*17); b.setAttribute("y",y); b.setAttribute("width",13); b.setAttribute("height",18);
+    b.setAttribute("rx",2); b.setAttribute("fill",fill); b.setAttribute("stroke","#9ca3af"); b.setAttribute("stroke-width",1); row.appendChild(b); }
+  const lock=document.createElementNS(NS,"line"); lock.setAttribute("x1",830); lock.setAttribute("x2",1092); lock.setAttribute("y1",y+9); lock.setAttribute("y2",y+9);
+  lock.setAttribute("stroke","#9ca3af"); lock.setAttribute("stroke-width",2); lock.setAttribute("opacity",0); row.appendChild(lock);
+  sg.appendChild(row); shelfRows.push({row,ok,lock,y});
+});
+// a book that moves from public to hr-restricted during revocation
+const mover = document.createElementNS(NS,"rect"); mover.setAttribute("width",13); mover.setAttribute("height",18); mover.setAttribute("rx",2);
+mover.setAttribute("fill","#fde68a"); mover.setAttribute("stroke","#ea580c"); mover.setAttribute("stroke-width",2); mover.setAttribute("opacity",0); sg.appendChild(mover);
+// label chips
+const chips = [["public","allowed",true],["cs-internal","allowed",true],["cs-confidential","blocked",false],["hr-restricted","blocked",false],["board-restricted","blocked",false]];
+const cg = document.getElementById("chips");
+chips.forEach(([n,s,ok],i)=>{ const y=618+i*30;
+  const t=document.createElementNS(NS,"text"); t.setAttribute("x",300); t.setAttribute("y",y); t.setAttribute("font-size",19);
+  t.setAttribute("fill", ok? "#15803d":"#b91c1c"); t.textContent=(ok?"✓ ":"✗ ")+n; if(!ok) t.setAttribute("text-decoration","line-through"); cg.appendChild(t); });
+
+const P = id => document.getElementById(id);
+const steps = [];   // [t0, t1, edgeId, dotId, color]
+const caps = [
+ [0,5,""],
+ [5,17,"A · Loading, once: papers are embedded on Kaggle, labelled by Spark, stored in Iceberg, indexed into Milvus"],
+ [17,21,"B · A search. Rahul, a CS engineer, types: \"graph neural networks\""],
+ [21,25,"1. The API checks who he is: role = cs_engineer"],
+ [25,30,"2. His role may read only two labels: public and cs-internal"],
+ [30,34,"3. His question becomes an embedding: 384 numbers (all-MiniLM-L6-v2)"],
+ [34,41,"4. Milvus searches only the allowed shelves; board-only papers are never candidates"],
+ [41,45,"5. Second check: every result's label is checked again (blocked: 0)"],
+ [45,48,"6. The audit log records who searched for what"],
+ [48,53,"7. Rahul gets results that are only public or cs-internal. No Spark, Iceberg or FAISS here"],
+ [53,57,"C · Revocation. A paper must become hr-restricted: an event goes to Kafka"],
+ [57,60,"Spark Structured Streaming picks up the event"],
+ [60,64,"Fast path (every 0.2 s): Milvus is updated first, so the paper vanishes for Rahul in about 1 s"],
+ [64,72,"Slow path (every 1 s): the Iceberg table and audit history catch up a few seconds later"],
+ [72,78,"Load once · search every time · revoke fast. Before this split, revocation took about 5 s"],
+];
+const moves = [ // edge, t0, t1, which dot
+ ["A1",5.5,7.5,"dot"],["A2",7.5,9.5,"dot"],["A3",9.5,11.5,"dot"],["A4",11.5,14,"dot"],
+ ["B1",21,22.5,"dot"],["B2",30,31.5,"dot"],["B3",34,35.5,"dot"],["B4",41,42.5,"dot"],["B5",45,46.5,"dot"],["B6",48,49.5,"dot"],
+ ["C1",54,56,"dot2"],["C2",57,59,"dot2"],["C3",60,61.2,"dot2"],["C4",64,71,"dot2"],
+];
+const highlights = [ // box, t0, t1, colour key
+ ["kaggle",5,17,"A"],["ingest",7.5,17,"A"],["iceberg",9.5,17,"A"],["index",11.5,17,"A"],["milvus",14,17,"A"],
+ ["rahul",17,53,"B"],["api",22.5,53,"B"],["embed",31.5,53,"B"],["milvus",35.5,53,"B"],["check",42.5,53,"B"],["audit",46.5,53,"B"],["results",49.5,53,"B"],
+ ["admin",53,78,"C"],["kafka",56,78,"C"],["stream",59,78,"C"],["milvus",61.2,78,"C"],["iceberg",71,78,"C"],
+];
+const activeEdges = { A:["A1","A2","A3","A4"], B:["B1","B2","B3","B4","B5","B6"], C:["C1","C2","C3","C4"] };
+function clamp(x){return Math.max(0,Math.min(1,x));}
+function ease(x){return x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;}
+function render(t){
+  // caption
+  let c=""; for (const [a,b,s] of caps) if (t>=a && t<b) c=s; P("cap").textContent=c;
+  // card
+  let card = t<4.4 ? 1 : t<5 ? 1-(t-4.4)/0.6 : t>76.6 ? (t-76.6)/1.4 : 0;
+  P("card").setAttribute("opacity", clamp(card));
+  // boxes reset
+  for (const k in boxEls){ boxEls[k].setAttribute("stroke","#c4c9d0"); boxEls[k].setAttribute("stroke-width",2.5); boxEls[k].setAttribute("fill","#fff"); }
+  for (const [k,a,b,ck] of highlights){ if (t>=a && t<b){ boxEls[k].setAttribute("stroke",color[ck]); boxEls[k].setAttribute("stroke-width",5);
+      boxEls[k].setAttribute("fill", ck==="A"?"#f1f5f9": ck==="B"?"#eff6ff":"#fff7ed"); } }
+  // edges colour by phase
+  for (const e of document.querySelectorAll("#edges path")) { e.setAttribute("stroke","#c4c9d0"); e.setAttribute("stroke-width",3); }
+  const phase = t<17?"A": t<53?"B":"C";
+  if (t>=5) for (const [id,a] of moves) { if (id[0]===phase && t>=a) { P(id).setAttribute("stroke",color[phase]); P(id).setAttribute("stroke-width",5); } }
+  P("t_fast").setAttribute("fill", t>=60? "#ea580c":"#9aa1ab"); P("t_slow").setAttribute("fill", t>=64? "#ea580c":"#9aa1ab");
+  // dots
+  for (const d of ["dot","dot2"]) P(d).setAttribute("opacity",0);
+  for (const [id,a,b,d] of moves){ if (t>=a && t<=b){ const p=P(id), L=p.getTotalLength(), pt=p.getPointAtLength(L*ease(clamp((t-a)/(b-a))));
+      P(d).setAttribute("cx",pt.x); P(d).setAttribute("cy",pt.y); P(d).setAttribute("opacity",1);
+      P(d).setAttribute("fill", id[0]==="A"?"#475569": id[0]==="B"?"#2563eb":"#ea580c"); } }
+  // B details
+  P("bubble").setAttribute("opacity", t>=17 && t<53 ? 1:0);
+  P("chips").setAttribute("opacity", t>=25 && t<53 ? clamp((t-25)/0.6):0);
+  P("vec").setAttribute("opacity", t>=31.5 && t<53 ? clamp((t-31.5)/0.6):0);
+  P("blocked").setAttribute("opacity", t>=42.5 && t<53 ? 1:0);
+  P("results").setAttribute("opacity", t>=49.5 && t<53 ? 1:0);
+  for (const s of shelfRows){ const off = (t>=36 && t<53 && !s.ok);
+    s.row.setAttribute("opacity", off? 0.22 : 1); s.lock.setAttribute("opacity", off? 1:0); }
+  // revocation: one public book moves to the hr-restricted shelf during the fast path
+  if (t>=60.8 && t<78){ const k=clamp((t-60.8)/1.6), x=990+5*17, y0=488, y1=488+4*24;
+    mover.setAttribute("x",x); mover.setAttribute("y",y0+(y1-y0)*ease(k)); mover.setAttribute("opacity",1);} else mover.setAttribute("opacity",0);
+}
+window.render = render;
+render(0);
+</script>
+</body></html>
