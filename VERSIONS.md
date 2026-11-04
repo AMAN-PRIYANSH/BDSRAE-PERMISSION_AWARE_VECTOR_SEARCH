@@ -19,6 +19,7 @@ Checked on 29 Oct 2026. Every tool is free and open source.
 | sentence-transformers + all-MiniLM-L6-v2 | 6.2.0 | Apache 2.0 | Small (384 numbers per text), free, runs locally, no data leaves the machine |
 | FAISS (faiss-cpu) | 1.15.1 | MIT | Exact ground truth and library baseline |
 | FastAPI / Streamlit | latest | MIT / Apache 2.0 | Search API and demo UI |
+| Apache Airflow | 3.3.2 (apache/airflow:3.3.2-python3.12) | Apache 2.0 | Added 4 Nov 2026. Airflow 2 is end of life (April 2026), so we start on the 3.x line. 3.3.2 is the newest patch release (17 Sep 2026). Its metadata goes in a separate `airflow` database in the project Postgres. |
 | Docker Desktop | user's install | Free for personal and education use | Runs the whole stack |
 | Dataset: arXiv metadata | Kaggle Cornell-University/arxiv | CC0 (public domain) | No personal data, openly licensed, ~2.3M records |
 
@@ -28,3 +29,4 @@ Checked on 29 Oct 2026. Every tool is free and open source.
 2. HNSW recall measured on random vectors is very low (0.28 at efSearch 64) but perfect on clustered, embedding-like vectors. All benchmarks must use real arXiv embeddings, never random data.
 3. Newer PyTorch wheels on PyPI pull NVIDIA CUDA packages on Linux. The Dockerfile installs the CPU build first and locks it with a pip constraint.
 4. Bind-mounting Windows folders into Linux containers is slow for etcd and breaks the ownership change Milvus needs. All databases use named Docker volumes.
+5. Airflow 3 runs several processes (scheduler, API server, DAG processor). They must share one JWT secret, or tasks fail to report back; the compose file sets it explicitly (local-only value).

@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="16" skipped="0" tests="38" time="16.729" timestamp="2026-11-04T16:06:35.228364+00:00" hostname="c8b581dc63ea"><testcase classname="tests.test_leakage" name="test_no_result_outside_role[ananya.intern-filter]" time="0.751"><failure message="AssertionError: ananya.intern/filter: 5027 forbidden results&#10;assert 5027 == 0">searcher = &lt;src.pavs.search.Searcher object at 0x7a1f6db82660&gt;
+query_vectors = array([[ 0.01225281,  0.03701782,  0.02015686, ...,  0.06079102,
+         0.01334381, -0.00273895],
+       [-0.1359863...45435, -0.0446167 ,  0.02262878, ..., -0.06848145,
+        -0.1373291 , -0.00798035]], shape=(200, 384), dtype=float32)
+user = 'ananya.intern', method = 'filter'
+
+    @pytest.mark.parametrize("method", METHODS)
+    @pytest.mark.parametrize("user", list(policy.USERS))
+    def test_no_result_outside_role(searcher, query_vectors, user, method):
+        allowed = set(policy.allowed_labels(user))
+        leaks = 0
+        for v in query_vectors:
+            res = searcher.search(user, vector=v, k=50, method=method, post_check=False, audit=False)
+            leaks += sum(1 for h in res.hits if h["access_label"] not in allowed)
+&gt;       assert leaks == 0, f"{user}/{method}: {leaks} forbidden results"
+E       AssertionError: ananya.intern/filter: 5027 forbidden results
+E       assert 5027 == 0
+
+tests/test_leakage.py:70: AssertionError</failure></testcase><testcase classname="tests.test_leakage" name="test_no_result_outside_role[ananya.intern-partition]" time="0.521" /><testcase classname="tests.test_leakage" name="test_no_result_outside_role[rahul.cs-filter]" time="0.603"><failure message="AssertionError: rahul.cs/filter: 3850 forbidden results&#10;assert 3850 == 0">searcher = &lt;src.pavs.search.Searcher object at 0x7a1f6db82660&gt;
+query_vectors = array([[ 0.01225281,  0.03701782,  0.02015686, ...,  0.06079102,
+         0.01334381, -0.00273895],
+       [-0.1359863...45435, -0.0446167 ,  0.02262878, ..., -0.06848145,
+        -0.1373291 , -0.00798035]], shape=(200, 384), dtype=float32)
+user = 'rahul.cs', method = 'filter'
+
+    @pytest.mark.parametrize("method", METHODS)
+    @pytest.mark.parametrize("user", list(policy.USERS))
+    def test_no_result_outside_role(searcher, query_vectors, user, method):
+        allowed = set(policy.allowed_labels(user))
+        leaks = 0
+        for v in query_vectors:
+            res = searcher.search(user, vector=v, k=50, method=method, post_check=False, audit=False)
+            leaks += sum(1 for h in res.hits if h["access_label"] not in allowed)
+&gt;       assert leaks == 0, f"{user}/{method}: {leaks} forbidden results"
+E       AssertionError: rahul.cs/filter: 3850 forbidden results
+E       assert 3850 == 0
+
+tests/test_leakage.py:70: AssertionError</failure></testcase><testcase classname="tests.test_leakage" name="test_no_result_outside_role[rahul.cs-partition]" time="0.668" /><testcase classname="tests.test_leakage" name="test_no_result_outside_role[meera.csmgr-filter]" time="0.647"><failure message="AssertionError: meera.csmgr/filter: 3595 forbidden results&#10;assert 3595 == 0">searcher = &lt;src.pavs.search.Searcher object at 0x7a1f6db82660&gt;
+query_vectors = array([[ 0.01225281,  0.03701782,  0.02015686, ...,  0.06079102,
+         0.01334381, -0.00273895],
+       [-0.1359863...45435, -0.0446167 ,  0.02262878, ..., -0.06848145,
+        -0.1373291 , -0.00798035]], shape=(200, 384), dtype=float32)
+user = 'meera.csmgr', method = 'filter'
+
+    @pytest.mark.parametrize("method", METHODS)
+    @pytest.mark.parametrize("user", list(policy.USERS))
+    def test_no_result_outside_role(searcher, query_vectors, user, method):
+        allowed = set(policy.allowed_labels(user))
+        leaks = 0
+        for v in query_vectors:
+            res = searcher.search(user, vector=v, k=50, method=method, post_check=False, audit=False)
+            leaks += sum(1 for h in res.hits if h["access_label"] not in allowed)
+&gt;       assert leaks == 0, f"{user}/{method}: {leaks} forbidden results"
+E       AssertionError: meera.csmgr/filter: 3595 forbidden results
+E       assert 3595 == 0
+
+tests/test_leakage.py:70: AssertionError</failure></testcase><testcase classname="tests.test_leakage" name="test_no_result_outside_role[meera.csmgr-partition]" time="0.711" /><testcase classname="tests.test_leakage" name="test_no_result_outside_role[kiran.math-filter]" time="0.622"><failure message="AssertionError: kiran.math/filter: 4376 forbidden results&#10;assert 4376 == 0">searcher = &lt;src.pavs.search.Searcher object at 0x7a1f6db82660&gt;
+query_vectors = array([[ 0.01225281,  0.03701782,  0.02015686, ...,  0.06079102,
+         0.01334381, -0.00273895],
+       [-0.1359863...45435, -0.0446167 ,  0.02262878, ..., -0.06848145,
+        -0.1373291 , -0.00798035]], shape=(200, 384), dtype=float32)
+user = 'kiran.math', method = 'filter'
+
+    @pytest.mark.parametrize("method", METHODS)
+    @pytest.mark.parametrize("user", list(policy.USERS))
+    def test_no_result_outside_role(searcher, query_vectors, user, method):
+        allowed = set(policy.allowed_labels(user))
+        leaks = 0
+        for v in query_vectors:
+            res = searcher.search(user, vector=v, k=50, method=method, post_check=False, audit=False)
+            leaks += sum(1 for h in res.hits if h["access_label"] not in allowed)
+&gt;       assert leaks == 0, f"{user}/{method}: {leaks} forbidden results"
+E       AssertionError: kiran.math/filter: 4376 forbidden results
+E       assert 4376 == 0
+
+tests/test_leakage.py:70: AssertionError</failure></testcase><testcase classname="tests.test_leakage" name="test_no_result_outside_role[kiran.math-partition]" time="0.561" /><testcase classname="tests.test_leakage" name="test_no_result_outside_role[farah.physics-filter]" time="0.641"><failure message="AssertionError: farah.physics/filter: 3150 forbidden results&#10;assert 3150 == 0">searcher = &lt;src.pavs.search.Searcher object at 0x7a1f6db82660&gt;
+query_vectors = array([[ 0.01225281,  0.03701782,  0.02015686, ...,  0.06079102,
+         0.01334381, -0.00273895],
+       [-0.1359863...45435, -0.0446167 ,  0.02262878, ..., -0.06848145,
+        -0.1373291 , -0.00798035]], shape=(200, 384), dtype=float32)
+user = 'farah.physics', method = 'filter'
+
+    @pytest.mark.parametrize("method", METHODS)
+    @pytest.mark.parametrize("user", list(policy.USERS))
+    def test_no_result_outside_role(searcher, query_vectors, user, method):
+        allowed = set(policy.allowed_labels(user))
+        leaks = 0
+        for v in query_vectors:
+            res = searcher.search(user, vector=v, k=50, method=method, post_check=False, audit=False)
+            leaks += sum(1 for h in res.hits if h["access_label"] not in allowed)
+&gt;       assert leaks == 0, f"{user}/{method}: {leaks} forbidden results"
+E       AssertionError: farah.physics/filter: 3150 forbidden results
+E       assert 3150 == 0
+
+tests/test_leakage.py:70: AssertionError</failure></testcase><testcase classname="tests.test_leakage" name="test_no_result_outside_role[farah.physics-partition]" time="0.645" /><testcase classname="tests.test_leakage" name="test_no_result_outside_role[vikram.phymgr-filter]" time="0.652"><failure message="AssertionError: vikram.phymgr/filter: 2695 forbidden results&#10;assert 2695 == 0">searcher = &lt;src.pavs.search.Searcher object at 0x7a1f6db82660&gt;
+query_vectors = array([[ 0.01225281,  0.03701782,  0.02015686, ...,  0.06079102,
+         0.01334381, -0.00273895],
+       [-0.1359863...45435, -0.0446167 ,  0.02262878, ..., -0.06848145,
+        -0.1373291 , -0.00798035]], shape=(200, 384), dtype=float32)
+user = 'vikram.phymgr', method = 'filter'
+
+    @pytest.mark.parametrize("method", METHODS)
+    @pytest.mark.parametrize("user", list(policy.USERS))
+    def test_no_result_outside_role(searcher, query_vectors, user, method):
+        allowed = set(policy.allowed_labels(user))
+        leaks = 0
+        for v in query_vectors:
+            res = searcher.search(user, vector=v, k=50, method=method, post_check=False, audit=False)
+            leaks += sum(1 for h in res.hits if h["access_label"] not in allowed)
+&gt;       assert leaks == 0, f"{user}/{method}: {leaks} forbidden results"
+E       AssertionError: vikram.phymgr/filter: 2695 forbidden results
+E       assert 2695 == 0
+
+tests/test_leakage.py:70: AssertionError</failure></testcase><testcase classname="tests.test_leakage" name="test_no_result_outside_role[vikram.phymgr-partition]" time="0.633" /><testcase classname="tests.test_leakage" name="test_no_result_outside_role[sana.analyst-filter]" time="0.621"><failure message="AssertionError: sana.analyst/filter: 4728 forbidden results&#10;assert 4728 == 0">searcher = &lt;src.pavs.search.Searcher object at 0x7a1f6db82660&gt;
+query_vectors = array([[ 0.01225281,  0.03701782,  0.02015686, ...,  0.06079102,
+         0.01334381, -0.00273895],
+       [-0.1359863...45435, -0.0446167 ,  0.02262878, ..., -0.06848145,
+        -0.1373291 , -0.00798035]], shape=(200, 384), dtype=float32)
+user = 'sana.analyst', method = 'filter'
+
+    @pytest.mark.parametrize("method", METHODS)
+    @pytest.mark.parametrize("user", list(policy.USERS))
+    def test_no_result_outside_role(searcher, query_vectors, user, method):
+        allowed = set(policy.allowed_labels(user))
+        leaks = 0
+        for v in query_vectors:
+            res = searcher.search(user, vector=v, k=50, method=method, post_check=False, audit=False)
+            leaks += sum(1 for h in res.hits if h["access_label"] not in allowed)
+&gt;       assert leaks == 0, f"{user}/{method}: {leaks} forbidden results"
+E       AssertionError: sana.analyst/filter: 4728 forbidden results
+E       assert 4728 == 0
+
+tests/test_leakage.py:70: AssertionError</failure></testcase><testcase classname="tests.test_leakage" name="test_no_result_outside_role[sana.analyst-partition]" time="0.613" /><testcase classname="tests.test_leakage" name="test_no_result_outside_role[deepa.hr-filter]" time="0.606"><failure message="AssertionError: deepa.hr/filter: 4928 forbidden results&#10;assert 4928 == 0">searcher = &lt;src.pavs.search.Searcher object at 0x7a1f6db82660&gt;
+query_vectors = array([[ 0.01225281,  0.03701782,  0.02015686, ...,  0.06079102,
+         0.01334381, -0.00273895],
+       [-0.1359863...45435, -0.0446167 ,  0.02262878, ..., -0.06848145,
+        -0.1373291 , -0.00798035]], shape=(200, 384), dtype=float32)
+user = 'deepa.hr', method = 'filter'
+
+    @pytest.mark.parametrize("method", METHODS)
+    @pytest.mark.parametrize("user", list(policy.USERS))
+    def test_no_result_outside_role(searcher, query_vectors, user, method):
+        allowed = set(policy.allowed_labels(user))
+        leaks = 0
+        for v in query_vectors:
+            res = searcher.search(user, vector=v, k=50, method=method, post_check=False, audit=False)
+            leaks += sum(1 for h in res.hits if h["access_label"] not in allowed)
+&gt;       assert leaks == 0, f"{user}/{method}: {leaks} forbidden results"
+E       AssertionError: deepa.hr/filter: 4928 forbidden results
+E       assert 4928 == 0
+
+tests/test_leakage.py:70: AssertionError</failure></testcase><testcase classname="tests.test_leakage" name="test_no_result_outside_role[deepa.hr-partition]" time="0.638" /><testcase classname="tests.test_leakage" name="test_no_result_outside_role[arjun.board-filter]" time="0.678"><failure message="AssertionError: arjun.board/filter: 4919 forbidden results&#10;assert 4919 == 0">searcher = &lt;src.pavs.search.Searcher object at 0x7a1f6db82660&gt;
+query_vectors = array([[ 0.01225281,  0.03701782,  0.02015686, ...,  0.06079102,
+         0.01334381, -0.00273895],
+       [-0.1359863...45435, -0.0446167 ,  0.02262878, ..., -0.06848145,
+        -0.1373291 , -0.00798035]], shape=(200, 384), dtype=float32)
+user = 'arjun.board', method = 'filter'
+
+    @pytest.mark.parametrize("method", METHODS)
+    @pytest.mark.parametrize("user", list(policy.USERS))
+    def test_no_result_outside_role(searcher, query_vectors, user, method):
+        allowed = set(policy.allowed_labels(user))
+        leaks = 0
+        for v in query_vectors:
+            res = searcher.search(user, vector=v, k=50, method=method, post_check=False, audit=False)
+            leaks += sum(1 for h in res.hits if h["access_label"] not in allowed)
+&gt;       assert leaks == 0, f"{user}/{method}: {leaks} forbidden results"
+E       AssertionError: arjun.board/filter: 4919 forbidden results
+E       assert 4919 == 0
+
+tests/test_leakage.py:70: AssertionError</failure></testcase><testcase classname="tests.test_leakage" name="test_no_result_outside_role[arjun.board-partition]" time="0.649" /><testcase classname="tests.test_leakage" name="test_no_result_outside_role[root.admin-filter]" time="0.620" /><testcase classname="tests.test_leakage" name="test_no_result_outside_role[root.admin-partition]" time="0.920" /><testcase classname="tests.test_leakage" name="test_targeted_restricted_document[filter]" time="0.014"><failure message="AssertionError: ananya.intern saw hr-restricted doc 108 via filter&#10;assert 108 not in {108, 3002, 3145, 12921, 32704, 43937, ...}">searcher = &lt;src.pavs.search.Searcher object at 0x7a1f6db82660&gt;
+restricted_docs = [{'doc_id': 108, 'access_label': 'hr-restricted', 'vec': [0.07474199682474136, -0.008496182039380074, 0.01416284590959...0.03717668727040291, -0.03717668727040291, -0.07917596399784088, -0.03903857618570328, 0.06635642051696777, ...]}, ...]
+method = 'filter'
+
+    @pytest.mark.parametrize("method", METHODS)
+    def test_targeted_restricted_document(searcher, restricted_docs, method):
+        checked = found_by_owner = 0
+        for doc in restricted_docs:
+            label = doc["access_label"]
+            for user in policy.USERS:
+                res = searcher.search(user, vector=doc["vec"], k=10, method=method, post_check=False, audit=False)
+                ids = {h["doc_id"] for h in res.hits}
+                if label in policy.allowed_labels(user):
+                    found_by_owner += doc["doc_id"] in ids
+                else:
+                    checked += 1
+&gt;                   assert doc["doc_id"] not in ids, f"{user} saw {label} doc {doc['doc_id']} via {method}"
+E                   AssertionError: ananya.intern saw hr-restricted doc 108 via filter
+E                   assert 108 not in {108, 3002, 3145, 12921, 32704, 43937, ...}
+
+tests/test_leakage.py:86: AssertionError</failure></testcase><testcase classname="tests.test_leakage" name="test_targeted_restricted_document[partition]" time="2.587" /><testcase classname="tests.test_leakage" name="test_unknown_users_fail_closed[]" time="0.001" /><testcase classname="tests.test_leakage" name="test_unknown_users_fail_closed[nobody]" time="0.000" /><testcase classname="tests.test_leakage" name="test_unknown_users_fail_closed[ROOT.ADMIN]" time="0.000" /><testcase classname="tests.test_leakage" name="test_unknown_users_fail_closed[root.admin ]" time="0.000" /><testcase classname="tests.test_leakage" name="test_unknown_users_fail_closed[root.admin' OR '1'='1]" time="0.001" /><testcase classname="tests.test_leakage" name="test_unknown_users_fail_closed[intern]" time="0.000" /><testcase classname="tests.test_leakage" name="test_unknown_users_fail_closed[admin]" time="0.000" /><testcase classname="tests.test_leakage" name="test_unknown_users_fail_closed[None]" time="0.000" /><testcase classname="tests.test_leakage" name="test_filter_injection_is_rejected[public&quot;] or access_label != &quot;x]" time="0.001"><failure message="assert '' is None&#10; +  where '' = &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt;(['public&quot;] or access_label != &quot;x'])&#10; +    where &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt; = policy.milvus_filter">payload = 'public"] or access_label != "x'
+
+    @pytest.mark.parametrize("payload", [
+        'public"] or access_label != "x',
+        "public] || true || [",
+        'hr-restricted" or 1==1 or "',
+        "*", "%", "public OR TRUE",
+    ])
+    def test_filter_injection_is_rejected(payload):
+&gt;       assert policy.milvus_filter([payload]) is None
+E       assert '' is None
+E        +  where '' = &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt;(['public"] or access_label != "x'])
+E        +    where &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt; = policy.milvus_filter
+
+tests/test_leakage.py:109: AssertionError</failure></testcase><testcase classname="tests.test_leakage" name="test_filter_injection_is_rejected[public] || true || []" time="0.001"><failure message="AssertionError: assert '' is None&#10; +  where '' = &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt;(['public] || true || ['])&#10; +    where &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt; = policy.milvus_filter">payload = 'public] || true || ['
+
+    @pytest.mark.parametrize("payload", [
+        'public"] or access_label != "x',
+        "public] || true || [",
+        'hr-restricted" or 1==1 or "',
+        "*", "%", "public OR TRUE",
+    ])
+    def test_filter_injection_is_rejected(payload):
+&gt;       assert policy.milvus_filter([payload]) is None
+E       AssertionError: assert '' is None
+E        +  where '' = &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt;(['public] || true || ['])
+E        +    where &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt; = policy.milvus_filter
+
+tests/test_leakage.py:109: AssertionError</failure></testcase><testcase classname="tests.test_leakage" name="test_filter_injection_is_rejected[hr-restricted&quot; or 1==1 or &quot;]" time="0.001"><failure message="assert '' is None&#10; +  where '' = &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt;(['hr-restricted&quot; or 1==1 or &quot;'])&#10; +    where &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt; = policy.milvus_filter">payload = 'hr-restricted" or 1==1 or "'
+
+    @pytest.mark.parametrize("payload", [
+        'public"] or access_label != "x',
+        "public] || true || [",
+        'hr-restricted" or 1==1 or "',
+        "*", "%", "public OR TRUE",
+    ])
+    def test_filter_injection_is_rejected(payload):
+&gt;       assert policy.milvus_filter([payload]) is None
+E       assert '' is None
+E        +  where '' = &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt;(['hr-restricted" or 1==1 or "'])
+E        +    where &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt; = policy.milvus_filter
+
+tests/test_leakage.py:109: AssertionError</failure></testcase><testcase classname="tests.test_leakage" name="test_filter_injection_is_rejected[*]" time="0.001"><failure message="AssertionError: assert '' is None&#10; +  where '' = &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt;(['*'])&#10; +    where &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt; = policy.milvus_filter">payload = '*'
+
+    @pytest.mark.parametrize("payload", [
+        'public"] or access_label != "x',
+        "public] || true || [",
+        'hr-restricted" or 1==1 or "',
+        "*", "%", "public OR TRUE",
+    ])
+    def test_filter_injection_is_rejected(payload):
+&gt;       assert policy.milvus_filter([payload]) is None
+E       AssertionError: assert '' is None
+E        +  where '' = &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt;(['*'])
+E        +    where &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt; = policy.milvus_filter
+
+tests/test_leakage.py:109: AssertionError</failure></testcase><testcase classname="tests.test_leakage" name="test_filter_injection_is_rejected[%]" time="0.001"><failure message="AssertionError: assert '' is None&#10; +  where '' = &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt;(['%'])&#10; +    where &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt; = policy.milvus_filter">payload = '%'
+
+    @pytest.mark.parametrize("payload", [
+        'public"] or access_label != "x',
+        "public] || true || [",
+        'hr-restricted" or 1==1 or "',
+        "*", "%", "public OR TRUE",
+    ])
+    def test_filter_injection_is_rejected(payload):
+&gt;       assert policy.milvus_filter([payload]) is None
+E       AssertionError: assert '' is None
+E        +  where '' = &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt;(['%'])
+E        +    where &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt; = policy.milvus_filter
+
+tests/test_leakage.py:109: AssertionError</failure></testcase><testcase classname="tests.test_leakage" name="test_filter_injection_is_rejected[public OR TRUE]" time="0.001"><failure message="AssertionError: assert '' is None&#10; +  where '' = &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt;(['public OR TRUE'])&#10; +    where &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt; = policy.milvus_filter">payload = 'public OR TRUE'
+
+    @pytest.mark.parametrize("payload", [
+        'public"] or access_label != "x',
+        "public] || true || [",
+        'hr-restricted" or 1==1 or "',
+        "*", "%", "public OR TRUE",
+    ])
+    def test_filter_injection_is_rejected(payload):
+&gt;       assert policy.milvus_filter([payload]) is None
+E       AssertionError: assert '' is None
+E        +  where '' = &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt;(['public OR TRUE'])
+E        +    where &lt;function _mutation.&lt;locals&gt;.&lt;lambda&gt; at 0x7a1f6dd76520&gt; = policy.milvus_filter
+
+tests/test_leakage.py:109: AssertionError</failure></testcase><testcase classname="tests.test_leakage" name="test_k_is_clamped" time="0.007" /><testcase classname="tests.test_leakage" name="test_api_identity_checks" time="0.322" /></testsuite></testsuites>

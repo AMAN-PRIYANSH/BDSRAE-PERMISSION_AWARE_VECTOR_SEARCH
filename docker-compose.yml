@@ -212,6 +212,47 @@ services:
         condition: service_started
     mem_limit: 2g
 
+  # Orchestration: start with  docker compose --profile orchestration up -d   (UI: http://localhost:8080)
+  # Airflow runs the batch jobs IN the app container through the Docker socket; it adds no second
+  # copy of Spark. Its own metadata lives in a separate "airflow" database in the same Postgres.
+  airflow:
+    container_name: pavs-airflow
+    image: apache/airflow:3.3.2-python3.12
+    profiles: ["orchestration"]
+    user: "50000:0"
+    command: ["bash", "/opt/pavs-orchestration/airflow_start.sh"]
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://iceberg:iceberg@postgres:5432/airflow
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__PARALLELISM: "4"
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "False"
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: admin:admin
+      AIRFLOW__DAG_PROCESSOR__REFRESH_INTERVAL: "30"
+      AIRFLOW__API__WORKERS: "1"
+      AIRFLOW__API_AUTH__JWT_SECRET: pavs-local-dev-only-change-me
+      AIRFLOW__API__SECRET_KEY: pavs-local-dev-only-change-me
+      PAVS_APP_CONTAINER: pavs-app
+    volumes:
+      - ./orchestration/dags:/opt/airflow/dags
+      - ./orchestration:/opt/pavs-orchestration:ro
+      - ./logs/airflow:/opt/airflow/logs
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8080:8080"   # http://localhost:8080  (admin / admin)
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8080/api/v2/monitor/health >/dev/null"]
+      interval: 20s
+      timeout: 10s
+      retries: 15
+      start_period: 60s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      app:
+        condition: service_started
+    mem_limit: 2560m
+
 volumes:
   etcd_data:
   minio_data:

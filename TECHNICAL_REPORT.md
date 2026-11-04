@@ -39,7 +39,7 @@ different roles (must be zero), and (3) how long a revoked document stays visibl
 
 # 3. Architecture
 
-![End-to-end architecture. Everything except Kaggle runs with one `docker compose up` on a 16 GB laptop.](docs/architecture_simple.png){width=74%}
+![End-to-end architecture. Everything except Kaggle runs with one `docker compose up` on a 16 GB laptop.](docs/architecture_simple.png){width=62%}
 
 **Big Data side.** Spark 4.0 reads the Kaggle output, assigns labels and writes **Apache Iceberg**
 tables (`documents` partitioned by department, `doc_embeddings`, `role_grants`, `users`,
@@ -47,6 +47,18 @@ tables (`documents` partitioned by department, `doc_embeddings`, `role_grants`, 
 Spark job joins documents and embeddings once and streams them into **Milvus**, which is therefore a
 *derived index* that can always be rebuilt from the lakehouse. Permission changes arrive as events on
 a **Kafka** topic and are applied by a **Spark Structured Streaming** job (Section 5.3).
+
+**Orchestration.** An **Apache Airflow 3.3** DAG, `pavs_pipeline`, runs the batch side in order:
+`check_services → ingest → index → quality_gate → leak_tests → mutation_check → benchmark → report`.
+Each task runs the existing job inside the app container, so Airflow adds scheduling, retries,
+timeouts and a run history without a second copy of Spark. The **quality gate** stops the run unless
+the source files, both Iceberg tables and both Milvus collections hold the same rows, label by label;
+every label is one the policy knows; the label shares match the rule (z-score below 5); and no vector
+is missing or NaN. Security tasks never retry (a test that passes on a retry is a flaky test), and the
+mutation check (5.4) runs on every load. On the laptop a full run on the 100k slice took **4 min 33 s**
+(ingest 75 s, index 75 s, quality gate 30 s, leak tests 23 s, mutation check 18 s, benchmark 30 s) and
+passed every step: 8 of 8 quality checks, 38 of 38 leak tests, and the same recall as Section 5.1
+(`results/airflow/pipeline_report_demo100k.md`, screenshot `docs/airflow_run.png`).
 
 **Search side.** `Searcher.search(user, query)` maps user → role → allowed labels. Unknown users get
 an empty allowlist and **no search is run** (fail-closed). The filter expression is built only from
@@ -75,6 +87,7 @@ documents only. All HNSW indexes use M=16, efConstruction=200, ef=64; k=10; 500 
 | FAISS as baseline | (none) | A library, not a database: lets us implement the naive and the pre-filter strategies exactly and compute exact ground truth. |
 | Iceberg | Delta Lake, Hudi | Engine-neutral open table format with snapshots and time travel (we can show what a document's label was at any time), works with Spark and a plain JDBC catalog, no vendor lock-in. |
 | Kafka | RabbitMQ, direct API calls | Durable, replayable log of permission changes; the stream job restarts from its checkpoint without losing a revocation. |
+| Airflow 3 | Prefect, cron | Most widely used orchestrator in data teams; a DAG shows every step, retry and failure in one place. Prefect would also work (lighter, plain Python); cron has no dependencies, retries or history. |
 | Spark | pandas | The same code scales from 100k to 1M+ rows and to a cluster; Structured Streaming gives exactly the micro-batch semantics we measure. |
 
 # 5. Results
@@ -94,7 +107,7 @@ Each cell: recall@10 at 1M documents, with the 100k result in brackets.
 | `faiss_post_10x` | 0.963 (0.982) | 0.954 (0.973) | 0.594 (0.633) | 0.445 (0.464) | 0.103 (0.103) | 0.010 (0.008) |
 | `faiss_postfilter` | 0.947 (0.969) | 0.497 (0.489) | 0.194 (0.193) | 0.049 (0.048) | 0.013 (0.009) | 0.002 (0.001) |
 
-![Recall@10 vs. selectivity (left = user sees everything, right = user sees very little).](results/recall_vs_selectivity_corpus1m.png){width=58%}
+![Recall@10 vs. selectivity (left = user sees everything, right = user sees very little).](results/recall_vs_selectivity_corpus1m.png){width=48%}
 
 **Reading (1M documents).** Both Milvus strategies keep recall between 0.96 and 1.0 at **every**
 selectivity. Naive post-filtering collapses exactly as theory predicts: with selectivity *s*, only about
@@ -149,7 +162,7 @@ consistency level, three versions of the stream job:
    MERGE + audit): **about 1 s**. The lakehouse still lags several seconds, but that delay is no
    longer on the security-critical path.
 
-![Leak window for each stream-job version and consistency level (20 trials per box, 100k documents).](results/revocation_comparison.png){width=56%}
+![Leak window for each stream-job version and consistency level (20 trials per box, 100k documents).](results/revocation_comparison.png){width=46%}
 
 The Milvus consistency level (Strong / Bounded / Eventually) moved the median by at most 0.7 s in
 every version (Strong is slightly slower because each search first waits for Milvus to confirm it has
@@ -193,16 +206,16 @@ forbidden results before they left the server. That is defence in depth working 
   nothing about real people. Vectors are never returned by the API (embeddings can be partly inverted).
 * **Limitations.** Labels are random, not semantic, so restricted documents are not topically
   clustered as in a real company (that would make post-filtering even worse). One label per document;
-  real systems need per-user and per-group grants (v2: OPA). Single-node Milvus. We did not test
-  timing side channels (does latency reveal how many restricted documents match?); this is v2 work,
-  together with Airflow orchestration, Flink and an IVF index comparison.
+  real systems need per-user and per-group grants. Identity is a demo header. Single-node Milvus. We did
+  not test timing side channels (does latency reveal how many restricted documents match?).
+* **Version 2 (planned).** Real sign-in with Keycloak tokens; per-document sharing with the OpenFGA
+  policy engine; a small LLM answer step that only sees allowed documents, with prompt-injection tests;
+  Prometheus and Grafana with an alert on any leak counter above 0; CI running the leakage suite.
 
 # 7. Reproducibility
 
-`docker compose up -d` starts Milvus (+etcd, MinIO), Kafka (KRaft), Postgres and the app container.
-`checks/10_load_demo100k.bat` → `11_leak_tests.bat` → `12_benchmark_demo100k.bat` →
-`14/15/16_revocation_*.bat` → `20_load_1m.bat` → `25_bench_1m_two_runs.bat` → `40_finish_all.bat`
-reproduce every number; each writes a log to `logs/` and results to `results/`. Versions are pinned and
-justified in `VERSIONS.md`. The 1M benchmark runs Milvus and FAISS in two separate runs on the same queries
-and ground truth: together they need about 8.6 GB and the laptop swapped, which made a first attempt's
-latencies meaningless (its recall matched; kept in `logs/bench_corpus1m_first_run_swapping.csv`).
+`docker compose up -d` starts the stack. The scripts in `checks/` reproduce every number (`10` → `11` → `12`
+→ `14/15/16` → `20` → `25` → `40`, logs in `logs/`, results in `results/`); `50_start_airflow.bat` and
+`51_run_pipeline.bat` run load, quality gate, tests and benchmark as one pipeline. Versions: `VERSIONS.md`.
+At 1M, Milvus and FAISS were benchmarked in separate runs: together they need 8.6 GB and the laptop swapped,
+which made a first attempt's latencies meaningless (kept in `results/bench_corpus1m_first_run_swapping.csv`).

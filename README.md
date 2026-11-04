@@ -14,7 +14,8 @@ user has a role. We then:
 1. compare five ways of enforcing permissions in vector search (two in Milvus, three FAISS baselines),
 2. measure how restrictive permissions change **latency** and **recall**,
 3. attack the system with a **leakage test suite** (users of different roles, targeted and injection attacks),
-4. measure how long a document stays visible after its access is **revoked** (streaming pipeline).
+4. measure how long a document stays visible after its access is **revoked** (streaming pipeline),
+5. run the whole batch side as one **Airflow** pipeline with a data-quality gate, so a bad load never reaches users.
 
 ## Architecture
 
@@ -44,6 +45,9 @@ flowchart LR
         M --> O[Streamlit UI :8501]
         M --> P[Leakage tests<br/>pytest]
         M --> Q[Benchmark<br/>vs FAISS baselines]
+        AF[Airflow DAG pavs_pipeline] -.runs in order.-> D
+        AF -.-> H
+        AF -.quality gate, tests, benchmark.-> P
     end
 ```
 
@@ -63,13 +67,14 @@ Ground truth for recall is exact search over only the documents the user may see
 
 | Path | What it is |
 |---|---|
-| `docker-compose.yml` | Whole stack: Milvus (+etcd, MinIO), Kafka, Postgres, app, API, UI |
+| `docker-compose.yml` | Whole stack: Milvus (+etcd, MinIO), Kafka, Postgres, app, API, UI, Airflow |
+| `orchestration/dags/pavs_pipeline.py` | Airflow DAG: ingest, index, quality gate, leak tests, mutation check, benchmark, report |
 | `Dockerfile`, `requirements.txt` | App image (Python 3.12, Java 17, Spark 4.0.4, CPU PyTorch) |
 | `VERSIONS.md` | Every pinned version and why |
 | `DATA_CARD.md` | Dataset, labels, personal-data handling, limitations |
 | `notebooks/01_kaggle_embed_arxiv.ipynb` | Embedding job (run on Kaggle) |
 | `src/pavs/policy.py` | Labels, roles, users, label rule (single source of truth) |
-| `src/pavs/jobs/` | Spark jobs: ingest to Iceberg, index to Milvus, ACL stream |
+| `src/pavs/jobs/` | Spark jobs: ingest to Iceberg, index to Milvus, ACL stream; `quality.py` data-quality gate |
 | `src/pavs/search.py` | Permission-aware search core (filter inside Milvus + second check) |
 | `src/pavs/api.py`, `src/pavs/ui.py` | FastAPI search API, Streamlit demo |
 | `src/pavs/bench.py`, `src/pavs/revocation_bench.py` | Latency/recall benchmark, revocation leak-window benchmark |
@@ -99,7 +104,27 @@ Ground truth for recall is exact search over only the documents the user may see
 12. `checks\32_check_demo.bat` (while the demo runs) checks the UI and API and prints example searches per role
 13. `checks\92_push_to_github.bat` pushes your commits to GitHub (the remote is set by `91_connect_github.bat`)
 
+**Orchestrated route (Airflow).** Steps 5 and 6 as one pipeline:
+
+1. `checks\50_start_airflow.bat` starts the stack plus Airflow (http://localhost:8080, login admin / admin, local only)
+2. `checks\51_run_pipeline.bat` triggers the `pavs_pipeline` DAG and follows it to the end
+   (`--skip-load` keeps the current index; `--prefix corpus1m` loads 1M). Or press Trigger in the Airflow UI.
+
 On Linux/macOS run the same `docker compose exec app python -m ...` commands that the `.bat` files contain.
+
+## Orchestration (Airflow)
+
+`pavs_pipeline`: `check_services → ingest → index → quality_gate → leak_tests → mutation_check → benchmark → report`
+
+- Airflow 3.3 runs each step **inside the existing app container** (Docker socket), so it adds no second copy of Spark.
+- `quality_gate` (`src/pavs/jobs/quality.py`) stops the run unless source files, Iceberg and both Milvus collections
+  agree row for row and label by label, labels are all known to the policy, label shares match the rule, and no vector is broken.
+- `leak_tests` and `mutation_check` never retry: a security test that passes on a retry is a flaky security test.
+  `mutation_check` disables the filter on purpose and passes only if the leak tests then **fail**.
+- One run writes `results/airflow/pipeline_report_<prefix>.md`, `results/quality_<prefix>.json` and `results/bench_airflow_<prefix>.csv`.
+- Measured on the laptop (100k documents): the whole DAG ran in **4 min 33 s**, every task green, 8/8 quality checks and 38/38 leak tests passed.
+
+![Airflow run: all eight tasks succeeded](docs/airflow_run.png)
 
 ## Results (measured on the laptop, details in `TECHNICAL_REPORT.pdf`)
 
@@ -116,3 +141,9 @@ On 1,000,000 arXiv documents, k=10, 500 queries per point:
 - Leakage suite: 38 tests, 0 leaks on the 100k and the 1M index; a mutation check (filter disabled on purpose) makes the suite fail, as it should.
 - Revocation leak window (median): 5.0 s with the first stream job, 1.0 s after splitting it into a fast Milvus path and a slow Iceberg path.
 - Figures: `results/recall_vs_selectivity_*.png`, `results/latency_vs_selectivity_*.png`, `results/revocation_comparison.png`.
+
+## Version 2 (planned, not in this submission)
+
+Real sign-in (Keycloak tokens instead of the demo `X-User` header), per-document sharing with a policy engine
+(OpenFGA), a small LLM answer step that only ever sees allowed documents (with prompt-injection tests),
+monitoring with a leak alert (Prometheus + Grafana), and CI that runs the leakage suite on every change.

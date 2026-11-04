@@ -22,3 +22,7 @@ logs/*
 # Editors
 .vscode/
 .idea/
+
+# Local job-runner helper (not part of the project)
+checks/00_job_runner.bat
+checks/queue/

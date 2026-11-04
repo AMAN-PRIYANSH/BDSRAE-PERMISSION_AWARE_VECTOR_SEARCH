@@ -1,0 +1,89 @@
+{
+  "prefix": "demo100k",
+  "passed": true,
+  "n_docs": 100000,
+  "per_label": {
+    "hr-restricted": 911,
+    "cs-confidential": 2297,
+    "other-internal": 2732,
+    "other-confidential": 603,
+    "public": 50090,
+    "cs-internal": 10392,
+    "board-restricted": 76,
+    "physics-internal": 19242,
+    "physics-confidential": 4287,
+    "math-confidential": 1770,
+    "math-internal": 7600
+  },
+  "tier_shares": {
+    "board": {
+      "observed": 0.00076,
+      "expected": 0.001,
+      "z": 2.4
+    },
+    "hr": {
+      "observed": 0.00911,
+      "expected": 0.009,
+      "z": 0.37
+    },
+    "confidential": {
+      "observed": 0.08957,
+      "expected": 0.09,
+      "z": 0.48
+    },
+    "internal": {
+      "observed": 0.39966,
+      "expected": 0.4,
+      "z": 0.22
+    },
+    "public": {
+      "observed": 0.5009,
+      "expected": 0.5,
+      "z": 0.57
+    }
+  },
+  "checks": [
+    {
+      "check": "counts",
+      "ok": true,
+      "detail": "source 100,000 | documents 100,000 | doc_embeddings 100,000"
+    },
+    {
+      "check": "no_nulls",
+      "ok": true,
+      "detail": "0 rows with a missing id, department or label"
+    },
+    {
+      "check": "label_vocabulary",
+      "ok": true,
+      "detail": "11 labels, all known to the policy"
+    },
+    {
+      "check": "label_shares",
+      "ok": true,
+      "detail": "largest deviation z=2.40 (limit 5.0)"
+    },
+    {
+      "check": "embeddings",
+      "ok": true,
+      "detail": "0 vectors missing, wrong length or NaN"
+    },
+    {
+      "check": "label_rule",
+      "ok": true,
+      "detail": "0 of 2016 sampled labels differ from policy.py"
+    },
+    {
+      "check": "milvus_row_count",
+      "ok": true,
+      "detail": "lake 100,000 | docs_filter 100,000 | docs_part 100,000"
+    },
+    {
+      "check": "milvus_per_label",
+      "ok": true,
+      "detail": "all 11 labels match in both collections"
+    }
+  ],
+  "seconds": 28.0,
+  "finished_at": "2026-11-04 16:06:07"
+}
